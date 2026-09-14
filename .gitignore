@@ -1,0 +1,5 @@
+*.qmlc
+*.jsc
+*.qm
+*.jshintrc
+.DS_Store

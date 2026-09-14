@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "mohammad284284.caelestia-audio",
+  "name": "Caelestia Audio Player",
+  "version": "1.0.0",
+  "author": "mohammadshakeralhusban-ctrl",
+  "description": "Now-playing audio player bar widget with genre and vocal/instrumental detection. Shows album art, detects song genre via MusicBrainz, and identifies vocal vs instrumental tracks.",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Caelestia Audio",
+    "description": "Now-playing with genre/vocal detection and album art",
+    "category": "Media",
+    "allowMultiple": false
+  }
+}
