@@ -101,9 +101,9 @@ function capitalize(str) {
 
 function buildSearchUrl(title, artist) {
   if (!title || !artist) return ""
+  var query = "recording:\"" + title + "\" AND artist:\"" + artist + "\""
   return "https://musicbrainz.org/ws/2/recording/"
-    + "?query=recording:\"" + encodeURIComponent(title) + "\""
-    + " AND artist:\"" + encodeURIComponent(artist) + "\""
+    + "?query=" + encodeURIComponent(query)
     + "&limit=1&fmt=json"
 }
 
