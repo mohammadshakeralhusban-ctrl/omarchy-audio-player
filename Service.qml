@@ -209,7 +209,8 @@ Item {
 
     var searchUrl = Model.buildSearchUrl(title, artist)
     if (searchUrl) {
-      searchProc.command = ["curl", "-fsS", "--max-time", "8",
+      searchProc.command = ["/usr/bin/curl", "-fsS", "--max-time", "8",
+        "--max-filesize", "2097152",
         "-H", "User-Agent: CaelestiaAudioPlayer/1.0",
         searchUrl]
       searchProc.running = true
@@ -233,7 +234,8 @@ Item {
         }
         var lookupUrl = Model.buildLookupUrl(parsed.mbid)
         if (lookupUrl) {
-          lookupProc.command = ["curl", "-fsS", "--max-time", "8",
+          lookupProc.command = ["/usr/bin/curl", "-fsS", "--max-time", "8",
+            "--max-filesize", "2097152",
             "-H", "User-Agent: CaelestiaAudioPlayer/1.0",
             lookupUrl]
           lookupProc.running = true
