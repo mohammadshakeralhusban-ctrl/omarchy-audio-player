@@ -1,0 +1,85 @@
+name: Caelestia plugin watch
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Restore last-seen comment state
+        uses: actions/cache@v4
+        id: comment-cache
+        with:
+          path: .watch/state
+          key: caelestia-comment-state
+
+      - name: Check for new comments and buzz
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NTFY_TOPIC: caelestia-audio-4f1a9c2e7b3d8a05
+        run: |
+          set -eu
+          OWNER="omacom"
+          REPO="omarchy-plugin-marketplace"
+          ISSUE=6910
+          SELF_USER="mohammadshakeralhusban-ctrl"
+
+          STATE=".watch/state"
+          mkdir -p .watch
+
+          prev=""
+          if [[ -f "$STATE" ]]; then
+            prev="$(cat "$STATE")"
+          fi
+
+          comments="$(
+            gh api "/repos/$OWNER/$REPO/issues/$ISSUE/comments?per_page=100" --jq 'if length>0 then . else [] end'
+          )"
+
+          if [[ "$comments" != "[]" ]]; then
+            latest_id="$(  echo "$comments" | jq -r 'if length>0 then (max_by(.id).id) else "" end')"
+            latest_user="$(echo "$comments" | jq -r 'if length>0 then (max_by(.id).user.login) else "" end')"
+            latest_date="$(echo "$comments" | jq -r 'if length>0 then (max_by(.id).created_at) else "" end')"
+            latest_body="$(echo "$comments" | jq -r 'if length>0 then (max_by(.id).body | split("\n")[0]) else "" end' | cut -c1-160)"
+          else
+            latest_id=""
+            latest_user=""
+            latest_date=""
+            latest_body=""
+          fi
+
+          if [[ -z "$latest_id" || "$latest_id" == "null" ]]; then
+            echo "no comments found"
+            exit 0
+          fi
+
+          if [[ -z "$prev" ]]; then
+            # First run: seed baseline without buzzing for history.
+            echo "$latest_id" > "$STATE"
+            echo "seeded baseline: $latest_id"
+            exit 0
+          fi
+
+          if [[ "$latest_id" -gt "$prev" ]]; then
+            echo "$latest_id" > "$STATE"
+            if [[ "$latest_user" != "$SELF_USER" ]]; then
+              body="$latest_user · ${latest_date:0:10}: ${latest_body}"
+              curl -fsS -X POST -H "Title: New report on plugin submission #$ISSUE" \
+                -H "Tags: loudspeaker" -H "Priority: high" \
+                -d "$body" "https://ntfy.sh/$NTFY_TOPIC"
+              echo "buzzed: $body"
+            else
+              echo "new comment is from self; skipped buzz"
+            fi
+          else
+            echo "no new comment (last seen $prev)"
+          fi
